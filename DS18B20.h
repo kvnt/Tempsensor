@@ -53,7 +53,7 @@ unsigned char readTimeSlot(void);
 
 void issueCommand(unsigned char command);
 
-void readScratchPad(void);
+unsigned int readScratchPad(void);
 
 unsigned int getTemperatureRegisterData(void);
 unsigned int getCrcRegisterData(void);

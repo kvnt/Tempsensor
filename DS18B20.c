@@ -105,7 +105,7 @@ void writeTimeSlot(unsigned char bit){
     switch (bit) {
             
             
-        case 0:
+        case 0x00:
             
             PULL_BUS_LOW;
             
@@ -115,7 +115,7 @@ void writeTimeSlot(unsigned char bit){
             
             break;
             
-        case 1:
+        case 0x01:
             
             PULL_BUS_LOW;;
             
@@ -159,7 +159,7 @@ unsigned char readTimeSlot(void){
     
     _delay_us(10);
     
-    //Sample
+    //Sample bus
     readBit = READ_BUS;
     
     _delay_us(48);
@@ -175,7 +175,7 @@ unsigned char readTimeSlot(void){
 
 void issueCommand(unsigned char command){
     
-    unsigned char mask = 0b00000001;
+    unsigned char mask = 0x01;
     
     for (unsigned char i = 0; i < 8; i++){
         
@@ -187,7 +187,9 @@ void issueCommand(unsigned char command){
 }
 
 
-void readScratchPad(void){
+unsigned int readScratchPad(void){
+    
+    scratchPad = (struct ScratchPad){0};
     
     initSequence();
     
@@ -203,59 +205,76 @@ void readScratchPad(void){
     // Read temperature
     for (unsigned char i = 0; i < 16; i++) {
         
-        scratchPad.temperature |= readTimeSlot() ? (1 << i) : (0 << i);
+        if(readTimeSlot()){
+            scratchPad.temperature |= (1 << i);
+        }
         
     }
     
     // Read Th-Register
     for (unsigned char i = 0; i < 8; i++) {
         
-        scratchPad.th_register |= readTimeSlot() ? (1 << i) : (0 << i);
+        if(readTimeSlot()){
+            scratchPad.th_register |= (1 << i);
+        }
         
     }
     
     // Read Tl-Register
     for (unsigned char i = 0; i < 8; i++) {
         
-        scratchPad.tl_register |= readTimeSlot() ? (1 << i) : (0 << i);
+        if(readTimeSlot()){
+            scratchPad.tl_register |= (1 << i);
+        }
         
     }
     
     // Read Configuration-Register
     for (unsigned char i = 0; i < 8; i++) {
         
-        scratchPad.conf_register |= readTimeSlot() ? (1 << i) : (0 << i);
+        if(readTimeSlot()){
+            scratchPad.conf_register |= (1 << i);
+        }
         
     }
     
     // Read Reserved Bytes 1
     for (unsigned char i = 0; i < 8; i++) {
         
-        scratchPad.reserved_one |= readTimeSlot() ? (1 << i) : (0 << i);
+        if(readTimeSlot()){
+            scratchPad.reserved_one |= (1 << i);
+        }
         
     }
     
     // Read Reserved Bytes 2
     for (unsigned char i = 0; i < 8; i++) {
         
-        scratchPad.reserved_two |= readTimeSlot() ? (1 << i) : (0 << i);
+        if(readTimeSlot()){
+            scratchPad.reserved_two |= (1 << i);
+        }
         
     }
     
     // Read Reserved Bytes 3
     for (unsigned char i = 0; i < 8; i++) {
         
-        scratchPad.reserved_three |= readTimeSlot() ? (1 << i) : (0 << i);
+        if(readTimeSlot()){
+            scratchPad.reserved_three |= (1 << i);
+        }
         
     }
     
     // Read CRC
     for (unsigned char i = 0; i < 8; i++) {
         
-        scratchPad.crc |= readTimeSlot() ? (1 << i) : (0 << i);
+        if(readTimeSlot()){
+            scratchPad.crc |= (1 << i);
+        }
         
     }
     
+    return 1;
 }
 
 unsigned int getTemperatureRegisterData(void){
