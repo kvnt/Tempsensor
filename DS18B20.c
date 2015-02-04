@@ -10,7 +10,7 @@
 #include <util/delay.h>
 #include "DS18B20.h"
 
-
+// -------------Miscellaneous macros------------------
 #define PULL_BUS_LOW    (DDRF = DDRF | 0b00000001)
 #define RELEASE_BUS     (DDRF = DDRF & 0b11111110)
 
@@ -18,6 +18,31 @@
 #define BUS_IS_LOW      ((PINF & 0b00000001) == 0b00000000)
 
 #define READ_BUS        (PINF & 0b00000001)
+
+// ROM-commands
+#define SKIP_ROM        issueCommand(0xCC)
+
+// Function-commands
+#define CONVERT_T       {issueCommand(0x44); while (readTimeSlot() == 0){}}
+#define READ_SCRATCH    issueCommand(0xBE)
+
+
+/* -------------Scratchpad structure--------------
+ Contains all fields in scratchpad-register (DS18B20)
+ */
+struct ScratchPad{
+    
+    unsigned int  temperature;
+    unsigned char th_register;
+    unsigned char tl_register;
+    unsigned char conf_register;
+    unsigned char reserved_one;
+    unsigned char reserved_two;
+    unsigned char reserved_three;
+    unsigned char crc;
+    
+    
+} scratchPad;
 
 
 
@@ -75,7 +100,7 @@ void initSequence(void){
  
  */
 
-void writeTimeSlot(char bit){
+void writeTimeSlot(unsigned char bit){
     
     switch (bit) {
             
@@ -120,9 +145,9 @@ void writeTimeSlot(char bit){
  
  */
 
-char readTimeSlot(void){
+unsigned char readTimeSlot(void){
     
-    char readBit = 0;
+    unsigned char readBit = 0;
     
     // --- Master initiates the read time slot --
     
@@ -148,9 +173,9 @@ char readTimeSlot(void){
 }
 
 
-void issueCommand(char command){
+void issueCommand(unsigned char command){
     
-    char mask = 0b00000001;
+    unsigned char mask = 0b00000001;
     
     for (unsigned char i = 0; i < 8; i++){
         
@@ -162,31 +187,81 @@ void issueCommand(char command){
 }
 
 
-unsigned int checkTemperature(void){
-    
-    unsigned int input = 0;
+void readScratchPad(void){
     
     initSequence();
-    issueCommand(0xCC);
-    issueCommand(0x44);
     
-    while (readTimeSlot() == 0) {}
+    SKIP_ROM;
+    CONVERT_T;
     
     initSequence();
-    issueCommand(0xCC);
-    issueCommand(0xBE);
+    
+    SKIP_ROM;
+    READ_SCRATCH;
     
     
-    for (unsigned int i = 0; i < 16; i++) {
+    // Read temperature
+    for (unsigned char i = 0; i < 16; i++) {
         
-        if (readTimeSlot()){
-            
-            input |= (1 << i);
-            
-        }
+        scratchPad.temperature |= readTimeSlot() ? (1 << i) : (0 << i);
         
     }
     
-    return input;
+    // Read Th-Register
+    for (unsigned char i = 0; i < 8; i++) {
+        
+        scratchPad.th_register |= readTimeSlot() ? (1 << i) : (0 << i);
+        
+    }
     
+    // Read Tl-Register
+    for (unsigned char i = 0; i < 8; i++) {
+        
+        scratchPad.tl_register |= readTimeSlot() ? (1 << i) : (0 << i);
+        
+    }
+    
+    // Read Configuration-Register
+    for (unsigned char i = 0; i < 8; i++) {
+        
+        scratchPad.conf_register |= readTimeSlot() ? (1 << i) : (0 << i);
+        
+    }
+    
+    // Read Reserved Bytes 1
+    for (unsigned char i = 0; i < 8; i++) {
+        
+        scratchPad.reserved_one |= readTimeSlot() ? (1 << i) : (0 << i);
+        
+    }
+    
+    // Read Reserved Bytes 2
+    for (unsigned char i = 0; i < 8; i++) {
+        
+        scratchPad.reserved_two |= readTimeSlot() ? (1 << i) : (0 << i);
+        
+    }
+    
+    // Read Reserved Bytes 3
+    for (unsigned char i = 0; i < 8; i++) {
+        
+        scratchPad.reserved_three |= readTimeSlot() ? (1 << i) : (0 << i);
+        
+    }
+    
+    // Read CRC
+    for (unsigned char i = 0; i < 8; i++) {
+        
+        scratchPad.crc |= readTimeSlot() ? (1 << i) : (0 << i);
+        
+    }
+    
+}
+
+unsigned int getTemperatureRegisterData(void){
+    return scratchPad.temperature;
+}
+
+unsigned int getCrcRegisterData(void){
+    return scratchPad.crc;
 }

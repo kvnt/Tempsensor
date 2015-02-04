@@ -33,7 +33,7 @@ void initSequence(void);
  
  */
 
-void writeTimeSlot(char bit);
+void writeTimeSlot(unsigned char bit);
 
 
 
@@ -49,8 +49,11 @@ void writeTimeSlot(char bit);
  
  */
 
-char readTimeSlot(void);
+unsigned char readTimeSlot(void);
 
-void issueCommand(char command);
+void issueCommand(unsigned char command);
 
-unsigned int checkTemperature(void);
+void readScratchPad(void);
+
+unsigned int getTemperatureRegisterData(void);
+unsigned int getCrcRegisterData(void);

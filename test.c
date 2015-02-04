@@ -59,7 +59,8 @@ int main(void)
 ISR(TIMER1_OVF_vect)
 {
     /* Timer 0 overflow */
-    unsigned int temp = checkTemperature();
-    printCelsiusTemperature(temp);
+    readScratchPad();
     
+    printCelsiusTemperature(getTemperatureRegisterData());
+    //printIntAsBinary(getCrcRegisterData());
 }
