@@ -249,12 +249,12 @@ void printCelsiusTemperature(unsigned int temp){
         unsigned int tenths             = fraction/1000;
         unsigned int centesimals        = (fraction/100) % 10;
         unsigned int millesimals        = (fraction/10) % 10;
-        unsigned int tenmillesimals     = (fraction % 100) % 10;
+        unsigned int tensmillesimals     = (fraction % 100) % 10;
         
         writeCharacter(tenths | 0b00110000);
         writeCharacter(centesimals | 0b00110000);
         writeCharacter(millesimals | 0b00110000);
-        writeCharacter(tenmillesimals | 0b00110000);
+        writeCharacter(tensmillesimals | 0b00110000);
         
     }
     
