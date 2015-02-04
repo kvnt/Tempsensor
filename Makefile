@@ -47,7 +47,8 @@ TARGET = test
 # List C source files here. (C dependencies are automatically generated.)
 SRC =	$(TARGET).c \
         ATM1602B.c \
-        DS18B20.c
+        DS18B20.c \
+        temphandler.c
 
 
 # MCU name, you MUST set this to match the board you are using

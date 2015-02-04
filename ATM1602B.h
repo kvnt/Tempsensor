@@ -55,4 +55,4 @@ void writeCharacter(unsigned char character);
 
 void printCharAsBinary(unsigned char bin);
 void printIntAsBinary(unsigned int bin);
-void printCelsiusTemperature(unsigned int temp);
+void position(void);

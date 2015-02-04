@@ -20,8 +20,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include "ATM1602B.h"
-#include "DS18B20.h"
+#include "temphandler.h"
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
@@ -32,9 +31,6 @@ int main(void)
     
     // set for 16 MHz clock
     CPU_PRESCALE(0);
-    
-	initLCD();
-	displayOn();
     
     // initialize Timer1
     cli();             // disable global interrupts
@@ -48,6 +44,8 @@ int main(void)
     
     // enable global interrupts:
     sei();
+    
+    startLCD();
 
     while(1){
 
@@ -59,8 +57,6 @@ int main(void)
 ISR(TIMER1_OVF_vect)
 {
     /* Timer 0 overflow */
-    while (readScratchPad() != 1) {}
+    printCelsiusTemperature();
 
-    printCelsiusTemperature(getTemperatureRegisterData());
-    //printIntAsBinary(getTemperatureRegisterData());
 }
