@@ -23,15 +23,15 @@
 /* 
  * Code to control ATM1602B - Liquid Crystal Display Module
  * (http://www.hebeiltd.com.cn/lcm.datasheet/ATM1602B.pdf)
- *	----------------------------------
- * 	|	AVR  	| 	LCD	 |	
- * 	----------------------------------
- * 	| D0 		:	RS       |
- * 	| D1 		: 	R/W	 |
- * 	| D2 		: 	E	 |
- *	|				 |
- * 	| B0 - B7 	:	D0 - D7  |	
- * 	----------------------------------
+ *	-----------------------
+ * 	|	AVR  	| 	LCD
+ * 	-----------------------
+ * 	| D0 		:	RS
+ * 	| D1 		: 	R/W
+ * 	| D2 		: 	E
+ *	|
+ * 	| B0 - B7 	:	D0 - D7
+ * 	-----------------------
  */
  
 #include <avr/io.h>
