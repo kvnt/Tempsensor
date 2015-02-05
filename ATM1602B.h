@@ -38,6 +38,10 @@
  // Initialize display
 void initLCD(void);
 
+void systemSet(void);
+
+void entryModeSet(void);
+
 // Clear display
 void clearDisplay(void);
 
@@ -55,4 +59,4 @@ void writeCharacter(unsigned char character);
 
 void printCharAsBinary(unsigned char bin);
 void printIntAsBinary(unsigned int bin);
-void position(void);
+void position(unsigned char address);

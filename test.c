@@ -32,6 +32,8 @@ int main(void)
     // set for 16 MHz clock
     CPU_PRESCALE(0);
     
+    startLCD();
+    
     // initialize Timer1
     cli();             // disable global interrupts
     
@@ -43,9 +45,7 @@ int main(void)
     TCCR1B |= (1 << CS12);
     
     // enable global interrupts:
-    sei();
-    
-    startLCD();
+    sei();    
 
     while(1){
 

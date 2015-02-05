@@ -8,4 +8,4 @@
 
 
 void startLCD(void);
-void printCelsiusTemperature();
+void printCelsiusTemperature(void);

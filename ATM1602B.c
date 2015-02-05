@@ -45,30 +45,44 @@
 // Initialize display
 void initLCD(void){
 
-
 	// Set as outputs
 	DDRD = DDRD | 0b00000111;
 	DDRB = DDRB | 0b11111111;
 
-	// System set
-	PORTD = PORTD & 0b11111100;
-	PORTB = PORTB & 0b00111100;					
-	PORTB = PORTB | 0b00111100;
-	
-	sendEnable();
-	readBusyFlag();
-
+    systemSet();
+    
 	// Clear display
 	clearDisplay();
 
-	// Entry Mode Set
-	PORTD = PORTD & 0b11111100;
-	PORTB = PORTB & 0b00000110;
-	PORTB = PORTB | 0b00000110;
-	
-	sendEnable();
-	readBusyFlag();
+    entryModeSet();
+    
+    systemSet();
+    
 
+}
+
+void systemSet(void){
+    
+    // System set
+    PORTD = PORTD & 0b11111100;
+    PORTB = PORTB & 0b00111100;
+    PORTB = PORTB | 0b00111100;
+    
+    sendEnable();
+    readBusyFlag();
+    
+}
+
+void entryModeSet(void){
+    
+    // Entry Mode Set
+    PORTD = PORTD & 0b11111100;
+    PORTB = PORTB & 0b00000110;
+    PORTB = PORTB | 0b00000110;
+    
+    sendEnable();
+    readBusyFlag();
+    
 }
 
 // Clear display
@@ -196,11 +210,12 @@ void printIntAsBinary(unsigned int bin){
 }
 
 
-void position(void){
+void position(unsigned char address){
     
     PORTD = PORTD & 0b11111100;
     PORTB &= 0b10000000;
     PORTB |= 0b10000000;
+    PORTB |= address;
     sendEnable();
     readBusyFlag();
     

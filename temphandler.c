@@ -24,7 +24,11 @@ void printCelsiusTemperature(void){
     
     unsigned int temp = getTemperatureRegisterData();
     
-    position();
+    position(0x00);
+    
+    printIntAsBinary(temp);
+    
+    position(0x41);
     
     writeCharacter(0b01010100);
     writeCharacter(0b01100101);
