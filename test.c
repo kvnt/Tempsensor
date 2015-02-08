@@ -45,7 +45,7 @@ int main(void)
     TCCR1B |= (1 << CS12);
     
     // enable global interrupts:
-    sei();    
+    sei();
 
     while(1){
 

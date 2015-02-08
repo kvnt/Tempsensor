@@ -57,3 +57,4 @@ unsigned int readScratchPad(void);
 
 unsigned int getTemperatureRegisterData(void);
 unsigned int getCrcRegisterData(void);
+unsigned char verifyCrc(void);

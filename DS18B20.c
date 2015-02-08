@@ -277,10 +277,159 @@ unsigned int readScratchPad(void){
     return 1;
 }
 
+
+unsigned char verifyCrc(void){
+    
+    register unsigned char shiftregister = 0,
+                           output = 0;
+    
+    
+    for (int c = 0; c < 16; c++) {
+        
+        output = (!(scratchPad.temperature & (1 << c)) != !(0x1 & shiftregister));
+
+        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+        
+        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+        
+        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
+        
+        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
+        
+        shiftregister = (output << 7) | (shiftregister & 0x7F);
+       
+    }
+    
+    for (int c = 0; c < 8; c++) {
+        
+        output = (!(scratchPad.th_register & (1 << c)) != !(0x1 & shiftregister));
+        
+        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+        
+        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+        
+        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
+        
+        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
+        
+        shiftregister = (output << 7) | (shiftregister & 0x7F);
+        
+        
+    }
+    
+    for (int c = 0; c < 8; c++) {
+        
+        output = (!(scratchPad.tl_register & (1 << c)) != !(0x1 & shiftregister));
+        
+        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+        
+        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+        
+        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
+        
+        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
+        
+        shiftregister = (output << 7) | (shiftregister & 0x7F);
+        
+    }
+
+    
+    for (int c = 0; c < 8; c++) {
+        
+
+        output = (!(scratchPad.conf_register & (1 << c)) != !(0x1 & shiftregister));
+        
+        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+        
+        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+        
+        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
+        
+        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
+        
+        shiftregister = (output << 7) | (shiftregister & 0x7F);
+        
+    }
+    
+    for (int c = 0; c < 8; c++) {
+        
+        output = (!(scratchPad.reserved_one & (1 << c)) != !(0x1 & shiftregister));
+        
+        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+        
+        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+        
+        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
+        
+        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
+        
+        shiftregister = (output << 7) | (shiftregister & 0x7F);
+        
+    }
+
+    
+    for (int c = 0; c < 8; c++) {
+        
+        output = (!(scratchPad.reserved_two & (1 << c)) != !(0x1 & shiftregister));
+        
+        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+
+        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+
+        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
+
+        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
+
+        shiftregister = (output << 7) | (shiftregister & 0x7F);
+        
+    }
+    
+    for (int c = 0; c < 8; c++) {
+        
+        output = (!(scratchPad.reserved_three & (1 << c)) != !(0x1 & shiftregister));
+
+        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+
+        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+
+        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
+
+        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
+
+        shiftregister = (output << 7) | (shiftregister & 0x7F);
+        
+    }
+    
+    // Shift in CRC
+    for (int c = 0; c < 8; c++) {
+
+        output = (!(scratchPad.crc & (1 << c)) != !(0x1 & shiftregister));
+        
+        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+        
+        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+        
+        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
+        
+        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
+        
+        shiftregister = (output << 7) | (shiftregister & 0x7F);        
+        
+    }
+
+   
+    return shiftregister == 0x00;
+}
+
+
 unsigned int getTemperatureRegisterData(void){
+    
     return scratchPad.temperature;
+    
 }
 
 unsigned int getCrcRegisterData(void){
+    
     return scratchPad.crc;
+    
 }
