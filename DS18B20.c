@@ -413,7 +413,7 @@ unsigned char verifyCrc(void){
         
         shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
         
-        shiftregister = (output << 7) | (shiftregister & 0x7F);        
+        shiftregister = (output << 7) | (shiftregister & 0x7F);
         
     }
 

@@ -88,7 +88,12 @@ void printCelsiusTemperature(void){
         
     }
     else{
+        
         clearDisplay();
+        writeCharacter(0b01000011); //C
+        writeCharacter(0b01010010); //R
+        writeCharacter(0b01000011); //C
+       
     }
 
     
