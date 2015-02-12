@@ -1,6 +1,6 @@
 //
 //  temphandler.c
-//  
+//
 //
 //  Created by robert on 2015-02-04.
 //
@@ -41,47 +41,54 @@ void printCelsiusTemperature(void){
         
         if (signBits){ //Negativt
             
+            unsigned int tempBits = (temp & 0b0000011111111111);
+            tempBits = ~tempBits;
+            tempBits = tempBits + 1;
+            integer = (tempBits & 0b0000011111110000) >> 4;
+            fraction = (tempBits & 0b0000000000001111);
+            writeCharacter(0b00101101);
+            
         }
-        else{ //Positivt
+        
+        
+        unsigned int hundreds  = integer / 100;
+        unsigned int tens      = (integer % 100) / 10;
+        unsigned int ones      = (integer % 100) % 10;
+        
+        if (hundreds){
             
-            unsigned int hundreds  = integer / 100;
-            unsigned int tens      = (integer % 100) / 10;
-            unsigned int ones      = (integer % 100) % 10;
+            writeCharacter(hundreds | 0b00110000);
+            writeCharacter(tens | 0b00110000);
             
-            if (hundreds){
-                
-                writeCharacter(hundreds | 0b00110000);
+        }
+        else{
+            
+            if(tens){
                 writeCharacter(tens | 0b00110000);
-                
             }
-            else{
-                
-                if(tens){
-                    writeCharacter(tens | 0b00110000);
-                }
-                
-            }
-            
-            writeCharacter(ones | 0b00110000);
-            
-            // -----------------------
-            
-            writeCharacter(0b00101110);
-            
-            // -----------------------
-            
-            fraction = fraction * 625;
-            unsigned int tenths             = fraction/1000;
-            unsigned int centesimals        = (fraction/100) % 10;
-            unsigned int millesimals        = (fraction/10) % 10;
-            unsigned int tensmillesimals     = (fraction % 100) % 10;
-            
-            writeCharacter(tenths | 0b00110000);
-            writeCharacter(centesimals | 0b00110000);
-            writeCharacter(millesimals | 0b00110000);
-            writeCharacter(tensmillesimals | 0b00110000);
             
         }
+        
+        writeCharacter(ones | 0b00110000);
+        
+        // -----------------------
+        
+        writeCharacter(0b00101110);
+        
+        // -----------------------
+        
+        fraction = fraction * 625;
+        unsigned int tenths             = fraction/1000;
+        unsigned int centesimals        = (fraction/100) % 10;
+        unsigned int millesimals        = (fraction/10) % 10;
+        unsigned int tensmillesimals     = (fraction % 100) % 10;
+        
+        writeCharacter(tenths | 0b00110000);
+        writeCharacter(centesimals | 0b00110000);
+        writeCharacter(millesimals | 0b00110000);
+        writeCharacter(tensmillesimals | 0b00110000);
+        
+        
         
         writeCharacter(0b11011111);
         writeCharacter(0b01000011);
@@ -93,8 +100,8 @@ void printCelsiusTemperature(void){
         writeCharacter(0b01000011); //C
         writeCharacter(0b01010010); //R
         writeCharacter(0b01000011); //C
-       
+        
     }
-
+    
     
 }
