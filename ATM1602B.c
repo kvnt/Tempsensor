@@ -1,6 +1,10 @@
 /*
  * Code to control ATM1602B - Liquid Crystal Display Module
- * (http://www.hebeiltd.com.cn/lcm.datasheet/ATM1602B.pdf) */
+ * (http://www.hebeiltd.com.cn/lcm.datasheet/ATM1602B.pdf)
+ *
+ * Created by Robert Kvant 2015 http://www.github.com/kvnt
+ *
+ */
 
 #include <stdint.h>
 #include <avr/io.h>
@@ -17,6 +21,13 @@
 #define RS_ONE              PORTD   |= 0x1
 #define RS_ZERO             PORTD   &= 0xFE
 
+//Commands
+#define SYSTEM_SET_8BITS_2LINES_10DOTS          0x3C
+#define SYSTEM_SET_8BITS_1LINE_10DOTS           0x34
+#define ENTRY_MODE_SET_INC_NOSHIFT              0x6
+#define CLEAR_DISPLAY                           0x1
+#define DISPLAY_ON_NO_CURSOR_NO_BLINK           0xC
+#define SET_DDRAM_ADDRESS                       0x80
 
 // Initialize display
 void initLCD(void){
@@ -24,11 +35,6 @@ void initLCD(void){
     // Set as outputs
     DDRD = DDRD | 0b00000111;
     DDRB = DDRB | 0b11111111;
-    
-    systemSet();
-    clearDisplay();
-    entryModeSet();
-    systemSet();
     
 }
 
@@ -106,37 +112,37 @@ void executeCommand(uint8_t command){
 }
 
 // System set
-void systemSet(void){
+void systemSet(uint8_t command){
     
-    executeCommand(0x3C);
+    executeCommand(command);
     
 }
 
 // Entry Mode set
-void entryModeSet(void){
+void entryModeSet(uint8_t command){
     
-    executeCommand(0x6);
+    executeCommand(command);
     
 }
 
 // Clear display
 void clearDisplay(void){
     
-    executeCommand(0x1);
+    executeCommand(CLEAR_DISPLAY);
     
 }
 
 // Display on
-void displayOn(void){
+void displayOn(uint8_t command){
     
-    executeCommand(0xC);
+    executeCommand(command);
     
 }
 
-// Place characters at specified address
+// Place cursor at specified address
 void position(uint8_t address){
     
-    executeCommand(address | 0x80);
+    executeCommand(address | SET_DDRAM_ADDRESS);
     
 }
 

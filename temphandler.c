@@ -14,7 +14,8 @@
 void startLCD(void){
     
     initLCD();
-    displayOn();
+    clearDisplay();
+    entryModeSet(ENTRY_MODE_SET_INC_NOSHIFT);
     
 }
 
