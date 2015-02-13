@@ -11,6 +11,7 @@
 #include <util/delay.h>
 #include "ATM1602B.h"
 
+#define DATAPORT            PORTB
 #define ENABLE_E            PORTD   |= 0x4
 #define DISABLE_E           PORTD   &= 0xFB
 #define BUSY_FLAG_HIGH      (PINB   & 0x80) == 0x80
@@ -90,8 +91,8 @@ void writeCharacter(uint8_t character){
     RW_ZERO;
     RS_ONE;
     
-    // Assign character to port B
-    PORTB = character;
+    // Assign character
+    DATAPORT = character;
     
     sendEnable();
     readBusyFlag();
@@ -104,7 +105,8 @@ void executeCommand(uint8_t command){
     RS_ZERO;
     RW_ZERO;
     
-    PORTB = command;
+    // Assign command
+    DATAPORT = command;
     
     sendEnable();
     readBusyFlag();
