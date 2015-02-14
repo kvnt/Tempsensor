@@ -1,11 +1,10 @@
-//
-//  temphandler.c
-//
-//
-//  Created by robert on 2015-02-04.
-//
-//
+/*
+ *
+ * Created by Robert Kvant 2015 http://www.github.com/kvnt
+ *
+ */
 
+#include <stdint.h>
 #include "temphandler.h"
 #include "ATM1602B.h"
 #include "DS18B20.h"

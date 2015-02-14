@@ -1,10 +1,8 @@
-//
-//  DS18B20.h
-//  
-//
-//  Created by robert on 2015-01-27.
-//
-//
+/*
+ *
+ * Created by Robert Kvant 2015 http://www.github.com/kvnt
+ *
+ */
 
 /*  INITIALIZATION PROCEDURE—RESET AND PRESENCE PULSES
  --------------------------------------------------

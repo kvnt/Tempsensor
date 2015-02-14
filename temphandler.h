@@ -1,11 +1,10 @@
-//
-//  temphandler.h
-//  
-//
-//  Created by robert on 2015-02-04.
-//
-//
+/*
+ *
+ * Created by Robert Kvant 2015 http://www.github.com/kvnt
+ *
+ */
 
+#include <stdint.h>
 
 void startLCD(void);
 void printCelsiusTemperature(void);
