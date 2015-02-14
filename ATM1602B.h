@@ -12,7 +12,9 @@
 #define SYSTEM_SET_8BITS_2LINES_10DOTS          0x3C
 #define SYSTEM_SET_8BITS_1LINE_10DOTS           0x34
 #define ENTRY_MODE_SET_INC_NOSHIFT              0x6
+#define CLEAR_DISPLAY                           0x1
 #define DISPLAY_ON_NO_CURSOR_NO_BLINK           0xC
+#define SET_DDRAM_ADDRESS                       0x80
 
 
  // Initialize display
@@ -21,17 +23,8 @@ void initLCD(void);
 // Write a single character
 void writeCharacter(uint8_t character);
 
-// System set
-void systemSet(uint8_t command);
-
-// Entry Mode
-void entryModeSet(uint8_t command);
-
-// Clear display
-void clearDisplay(void);
-
-// Display on
-void displayOn(uint8_t command);
+// Execute command
+void executeCommand(uint8_t command);
 
 // Place cursor at specified address
 void position(uint8_t address);

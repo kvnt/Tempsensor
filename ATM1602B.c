@@ -34,8 +34,8 @@
 void initLCD(void){
     
     // Set as outputs
-    DDRD = DDRD | 0b00000111;
-    DDRB = DDRB | 0b11111111;
+    DDRD |= 0x7;
+    DDRB |= 0xFF;
     
 }
 
@@ -60,7 +60,7 @@ void readBusyFlag(void){
     // Set pin B7 as input (LOW)
     DB7_INPUT;
     
-    // Set RS = 0 och R/W = 1 (Read Busy Flag)
+    // Set RS = 0, R/W = 1
     RS_ZERO;
     RW_ONE;
     
@@ -110,34 +110,6 @@ void executeCommand(uint8_t command){
     
     sendEnable();
     readBusyFlag();
-    
-}
-
-// System set
-void systemSet(uint8_t command){
-    
-    executeCommand(command);
-    
-}
-
-// Entry Mode set
-void entryModeSet(uint8_t command){
-    
-    executeCommand(command);
-    
-}
-
-// Clear display
-void clearDisplay(void){
-    
-    executeCommand(CLEAR_DISPLAY);
-    
-}
-
-// Display on
-void displayOn(uint8_t command){
-    
-    executeCommand(command);
     
 }
 

@@ -14,8 +14,10 @@
 void startLCD(void){
     
     initLCD();
-    clearDisplay();
-    entryModeSet(ENTRY_MODE_SET_INC_NOSHIFT);
+    executeCommand(SYSTEM_SET_8BITS_2LINES_10DOTS);
+    executeCommand(ENTRY_MODE_SET_INC_NOSHIFT);
+    executeCommand(DISPLAY_ON_NO_CURSOR_NO_BLINK);
+    executeCommand(CLEAR_DISPLAY);
     
 }
 
@@ -97,7 +99,7 @@ void printCelsiusTemperature(void){
     }
     else{
         
-        clearDisplay();
+        executeCommand(CLEAR_DISPLAY);
         writeCharacter(0b01000011); //C
         writeCharacter(0b01010010); //R
         writeCharacter(0b01000011); //C

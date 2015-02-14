@@ -32,7 +32,7 @@ int main(void)
     // set for 16 MHz clock
     CPU_PRESCALE(0);
     
-    startLCD();
+    startLCD();    
     
     // initialize Timer1
     cli();             // disable global interrupts
