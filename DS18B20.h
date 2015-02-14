@@ -4,6 +4,8 @@
  *
  */
 
+#include <stdint.h>
+
 /*  INITIALIZATION PROCEDURE—RESET AND PRESENCE PULSES
  --------------------------------------------------
  'All communication with the DS18B20 begins with an initialization

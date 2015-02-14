@@ -4,6 +4,7 @@
  *
  */
 
+#include <stdint.h>
 #include <avr/io.h>
 #include <util/delay.h>
 #include "DS18B20.h"
@@ -55,7 +56,7 @@ struct ScratchPad{
 void initSequence(void){
     
     // PORTF0 always zero.
-    PORTF &= 0b11111110;
+    PORTF &= 0xFE;
     
     
     // ---- MASTER TX RESET PULSE ---- //
@@ -97,12 +98,12 @@ void initSequence(void){
  
  */
 
-void writeTimeSlot(unsigned char bit){
+void writeTimeSlot(uint8_t bit){
     
     switch (bit) {
             
             
-        case 0x00:
+        case 0:
             
             PULL_BUS_LOW;
             
@@ -112,7 +113,7 @@ void writeTimeSlot(unsigned char bit){
             
             break;
             
-        case 0x01:
+        case 1:
             
             PULL_BUS_LOW;;
             
@@ -142,9 +143,9 @@ void writeTimeSlot(unsigned char bit){
  
  */
 
-unsigned char readTimeSlot(void){
+uint8_t readTimeSlot(void){
     
-    unsigned char readBit = 0;
+    uint8_t readBit = 0;
     
     // --- Master initiates the read time slot --
     
@@ -172,9 +173,9 @@ unsigned char readTimeSlot(void){
 
 void issueCommand(unsigned char command){
     
-    unsigned char mask = 0x01;
+    uint8_t mask = 0x1;
     
-    for (unsigned char i = 0; i < 8; i++){
+    for (uint8_t i = 0; i < 8; i++){
         
         writeTimeSlot((mask & command) >> i);
         
