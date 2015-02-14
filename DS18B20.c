@@ -65,7 +65,6 @@ void initSequence(void){
     _delay_us(480);
     
     RELEASE_BUS;
-    
    
     // ---- MASTER RX (SENSOR PRESENCE PULSE) ---- //
     
