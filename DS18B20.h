@@ -1,4 +1,6 @@
 /*
+ * Code to control DS18B20 temperaturesensor.
+ * http://datasheets.maximintegrated.com/en/ds/DS18B20.pdf
  *
  * Created by Robert Kvant 2015 http://www.github.com/kvnt
  *
@@ -11,7 +13,6 @@
  'All communication with the DS18B20 begins with an initialization
  sequence that consists of a reset pulse from the master followed
  by a presence pulse from the DS18B20.'
- 
  */
 
 void initSequence(void);
@@ -20,14 +21,6 @@ void initSequence(void);
 
 /*  WRITE TIME SLOT
  -----------------------------
- 'There are two types of write time slots: “Write 1” time slots
- and “Write 0” time slots. The bus master uses a Write 1 time
- slot to write a logic 1 to the DS18B20 and a Write 0 time slot
- to write a logic 0 to the DS18B20. All write time slots must
- be a minimum of 60μs in duration with a minimum of a 1μs recovery
- time between individual write slots. Both types of write time slots
- are initiated by the master pulling the 1-Wire bus low.'
- 
  void writeTimeSlot(char bit) takes zero or one as input and writes
  it to the sensor.
  
@@ -39,18 +32,37 @@ void writeTimeSlot(uint8_t bit);
 
 /* READ TIME SLOTS
  -------------------------------
- 'The DS18B20 can only transmit data to the master when the master
- issues read time slots. Therefore, the master must generate read
- time slots immediately after issuing a Read Scratchpad [BEh] or
- Read Power Supply [B4h] command, so that the DS18B20 can provide
- the requested data.'
- 
  unsigned char readTimeSlot() returns the read bit.
  
  */
 
 uint8_t readTimeSlot(void);
+
+
+/* Takes a function or rom command as input
+ and transmittes it to the sensor */
+
 void issueCommand(uint8_t command);
+
+
+
+/* Issues a tempconversion and reads the whole
+ scratchpad structure. */
+
 uint16_t readScratchPad(void);
+
+
+
+/* Returns the tempdata in scratchpad */
+
 uint16_t getTemperatureRegisterData(void);
+
+
+
+
+/* Takes the whole scratchpad and shifts it into
+ the shiftregister. Finally the CRC is shifted
+ in and if the result is zero the verification has
+ passed and hopefully the data is error-free. */
+
 uint8_t verifyCrc(void);

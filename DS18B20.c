@@ -1,4 +1,6 @@
 /*
+ * Code to control DS18B20 temperaturesensor.
+ * http://datasheets.maximintegrated.com/en/ds/DS18B20.pdf
  *
  * Created by Robert Kvant 2015 http://www.github.com/kvnt
  *
@@ -10,13 +12,13 @@
 #include "DS18B20.h"
 
 // -------------Miscellaneous macros------------------
-#define PULL_BUS_LOW    (DDRF = DDRF | 0b00000001)
-#define RELEASE_BUS     (DDRF = DDRF & 0b11111110)
+#define PULL_BUS_LOW    (DDRF = DDRF | 0x1)
+#define RELEASE_BUS     (DDRF = DDRF & 0xFE)
 
-#define BUS_IS_HIGH     ((PINF & 0b00000001) == 0b00000001)
-#define BUS_IS_LOW      ((PINF & 0b00000001) == 0b00000000)
+#define BUS_IS_HIGH     ((PINF & 0x1) == 0x1)
+#define BUS_IS_LOW      ((PINF & 0x1) == 0x0)
 
-#define READ_BUS        (PINF & 0b00000001)
+#define READ_BUS        (PINF & 0x1)
 
 // ROM-commands
 #define SKIP_ROM        issueCommand(0xCC)
@@ -36,14 +38,14 @@ uint8_t scratch[9];
 /*  INITIALIZATION PROCEDURE—RESET AND PRESENCE PULSES
  --------------------------------------------------
  'All communication with the DS18B20 begins with an initialization
- sequence that consists of a reset pulse from the master followed 
+ sequence that consists of a reset pulse from the master followed
  by a presence pulse from the DS18B20.'
-  */
+ */
 
 void initSequence(void){
     
     // PORTF0 always zero.
-    PORTF &= 0xFE;    
+    PORTF &= 0xFE;
     
     // ---- MASTER TX RESET PULSE ---- //
     
@@ -52,15 +54,15 @@ void initSequence(void){
     _delay_us(480);
     
     RELEASE_BUS;
-   
+    
     // ---- MASTER RX (SENSOR PRESENCE PULSE) ---- //
     
     _delay_us(15);
- 
+    
     while (BUS_IS_HIGH) {}
     
     _delay_us(60);
-
+    
     while (BUS_IS_LOW) {}
     
     _delay_us(405);
@@ -71,14 +73,6 @@ void initSequence(void){
 
 /*  WRITE TIME SLOT
  -----------------------------
- 'There are two types of write time slots: “Write 1” time slots
- and “Write 0” time slots. The bus master uses a Write 1 time
- slot to write a logic 1 to the DS18B20 and a Write 0 time slot
- to write a logic 0 to the DS18B20. All write time slots must
- be a minimum of 60μs in duration with a minimum of a 1μs recovery
- time between individual write slots. Both types of write time slots
- are initiated by the master pulling the 1-Wire bus low.'
- 
  void writeTimeSlot(char bit) takes zero or one as input and writes
  it to the sensor.
  
@@ -86,9 +80,12 @@ void initSequence(void){
 
 void writeTimeSlot(uint8_t bit){
     
-    switch (bit) {            
+    switch (bit) {
             
         case 0:
+            
+            /* Pull bus low for
+               60 microseconds */
             
             PULL_BUS_LOW;
             
@@ -100,6 +97,9 @@ void writeTimeSlot(uint8_t bit){
             
         case 1:
             
+            /* Pull bus low for
+             10 microseconds */
+            
             PULL_BUS_LOW;;
             
             _delay_us(10);
@@ -109,7 +109,7 @@ void writeTimeSlot(uint8_t bit){
             _delay_us(50);
             
             break;
-
+            
     }
     
     _delay_us(2);
@@ -118,12 +118,6 @@ void writeTimeSlot(uint8_t bit){
 
 /* READ TIME SLOTS
  -------------------------------
- 'The DS18B20 can only transmit data to the master when the master
- issues read time slots. Therefore, the master must generate read
- time slots immediately after issuing a Read Scratchpad [BEh] or
- Read Power Supply [B4h] command, so that the DS18B20 can provide
- the requested data.'
- 
  unsigned char readTimeSlot() returns the read bit.
  
  */
@@ -147,14 +141,18 @@ uint8_t readTimeSlot(void){
     
     _delay_us(48);
     
+    // Wait for sensor to finish
     while (BUS_IS_LOW) {}
     
-    _delay_us(2);    
-
+    _delay_us(2);
+    
     return readBit;
     
 }
 
+
+/* Takes a function or rom command as input
+   and transmits it to the sensor */
 
 void issueCommand(uint8_t command){
     
@@ -169,90 +167,128 @@ void issueCommand(uint8_t command){
     
 }
 
+/* ------ Read Scratchpad ------
+   Issues a tempconversion and reads the whole
+   scratchpad structure. */
 
 uint16_t readScratchPad(void){
     
+    /* Send presence pulse */
     initSequence();
     
+    /* Send skip ROM-command */
     SKIP_ROM;
+    
+    /* Issue a tempconversion */
     CONVERT_T;
     
+    /* Send presence pulse */
     initSequence();
     
+    /* Send skip ROM-command */
     SKIP_ROM;
+    
+    /* Issue a read scratch command */
     READ_SCRATCH;
-
-
+    
+    /* Reads all bytes from scratchpad 
+       and stores the result in scratch
+       array */
     for (uint8_t n = 0; n < 9; ++n)
     {
-
-        uint8_t s = 0;
-        scratch[n] = 0;
-
+        
+        uint8_t s   = 0;
+        scratch[n]  = 0;
+        
         for (uint8_t i = 0; i < 8; i++) {
-        
+            
             if(readTimeSlot()){
-
-               s |= (1 << i);
-
+                
+                s |= (1 << i);
+                
             }
-        
+            
         }
-
+        
         scratch[n] = s;
     }
-
+    
+    /* Return 1 when finished */
     return 1;
 }
 
+/* ------ Verify CRC ------
+   Takes the whole scratchpad and shifts it into
+   the shiftregister. Finally the CRC is shifted
+   in and if the result is zero the verification has
+   passed and hopefully the data is error-free. */
 
 uint8_t verifyCrc(void){
     
     register uint8_t shiftregister = 0,
                             output = 0,
                             input  = 0;
-
-
+    
+    /* Iterate through all 9 bytes in scratchpad */
     for (uint8_t n = 0; n < 9; ++n)
     {
-
-        input = scratch[n];
-
-        for (uint8_t c = 0; c < 8; c++) {
         
+        /* Store current byte from scratchpad in
+           temporary variable input. */
+        input = scratch[n];
+        
+        
+        /* Go through every bit in current byte */
+        for (uint8_t c = 0; c < 8; c++) {
             
+            /* Take the current bit and do XOR with least
+               significant bit in shiftregister */
             output = (!(input & (1 << c)) != !(0x1 & shiftregister));
             
-
-            shiftregister = (((shiftregister & 0x7) >> 1) | 
-                                        (shiftregister & 0xF8));
-
-            shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | 
-                                        (shiftregister & 0xFB);
-
-            shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | 
-                                        (shiftregister & 0xF7);
-
-            shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | 
-                                        (shiftregister & 0x0F); 
-
-
+            /* Shift the three least significant bits one step to the left */
+            shiftregister = (((shiftregister & 0x7) >> 1) |
+                                (shiftregister & 0xF8));
+            
+            /* Do XOR between third bit in shiftregister and output and
+               store the result in bit 2. */
+            shiftregister = ((!(shiftregister & 0x8) != !output) << 2) |
+                                (shiftregister & 0xFB);
+            
+            /* Do XOR between fourth bit in shiftregister and output and
+               store result in bit 3. */
+            shiftregister = ((!(shiftregister & 0x10) != !output) << 3) |
+                                (shiftregister & 0xF7);
+            
+            /* Shift the four most significant bits one step to the right. */
+            shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) |
+                                (shiftregister & 0x0F);
+            
+            /* Store the result of output in most significant bit. */
             shiftregister = (output << 7) | (shiftregister & 0x7F);
-        
+            
         }
-
+        
     }
     
-  
+    /* If shiftregister now contains all zeroes
+       the data should be error-free */
     return shiftregister == 0;
 }
 
 
-uint16_t getTemperatureRegisterData(void){
+/* ------ Return temperature data ------
+   Returns the tempdata in scratchpad */
 
+uint16_t getTemperatureRegisterData(void){
+    
+    /* Take the eight most significant bits
+       in tempregister and store them in temp. */
     uint16_t temp = scratch[1];
     temp <<= 8;
+    
+    /* Add the eight last significant bits */
     temp |= scratch[0];
+    
     return temp;
     
 }
