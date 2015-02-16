@@ -26,23 +26,11 @@
 #define READ_SCRATCH    issueCommand(0xBE)
 
 
-/* -------------Scratchpad structure--------------
- Contains all fields in scratchpad-register (DS18B20)
+/* -------------Scratchpad --------------
+ Contains all data in scratchpad-register (DS18B20)
  */
-struct ScratchPad{
-    
-    unsigned int  temperature;
-    unsigned char th_register;
-    unsigned char tl_register;
-    unsigned char conf_register;
-    unsigned char reserved_one;
-    unsigned char reserved_two;
-    unsigned char reserved_three;
-    unsigned char crc;
-    
-    
-} scratchPad;
 
+uint8_t scratch[9];
 
 
 /*  INITIALIZATION PROCEDURE—RESET AND PRESENCE PULSES
@@ -50,14 +38,12 @@ struct ScratchPad{
  'All communication with the DS18B20 begins with an initialization
  sequence that consists of a reset pulse from the master followed 
  by a presence pulse from the DS18B20.'
- 
- */
+  */
 
 void initSequence(void){
     
     // PORTF0 always zero.
-    PORTF &= 0xFE;
-    
+    PORTF &= 0xFE;    
     
     // ---- MASTER TX RESET PULSE ---- //
     
@@ -100,8 +86,7 @@ void initSequence(void){
 
 void writeTimeSlot(uint8_t bit){
     
-    switch (bit) {
-            
+    switch (bit) {            
             
         case 0:
             
@@ -171,7 +156,7 @@ uint8_t readTimeSlot(void){
 }
 
 
-void issueCommand(unsigned char command){
+void issueCommand(uint8_t command){
     
     uint8_t mask = 0x1;
     
@@ -185,9 +170,7 @@ void issueCommand(unsigned char command){
 }
 
 
-unsigned int readScratchPad(void){
-    
-    scratchPad = (struct ScratchPad){0};
+uint16_t readScratchPad(void){
     
     initSequence();
     
@@ -198,236 +181,79 @@ unsigned int readScratchPad(void){
     
     SKIP_ROM;
     READ_SCRATCH;
-    
-    
-    // Read temperature
-    for (unsigned char i = 0; i < 16; i++) {
+
+
+    for (uint8_t n = 0; n < 9; ++n)
+    {
+
+        uint8_t s = 0;
+        scratch[n] = 0;
+
+        for (uint8_t i = 0; i < 8; i++) {
         
-        if(readTimeSlot()){
-            scratchPad.temperature |= (1 << i);
+            if(readTimeSlot()){
+
+               s |= (1 << i);
+
+            }
+        
         }
-        
+
+        scratch[n] = s;
     }
-    
-    // Read Th-Register
-    for (unsigned char i = 0; i < 8; i++) {
-        
-        if(readTimeSlot()){
-            scratchPad.th_register |= (1 << i);
-        }
-        
-    }
-    
-    // Read Tl-Register
-    for (unsigned char i = 0; i < 8; i++) {
-        
-        if(readTimeSlot()){
-            scratchPad.tl_register |= (1 << i);
-        }
-        
-    }
-    
-    // Read Configuration-Register
-    for (unsigned char i = 0; i < 8; i++) {
-        
-        if(readTimeSlot()){
-            scratchPad.conf_register |= (1 << i);
-        }
-        
-    }
-    
-    // Read Reserved Bytes 1
-    for (unsigned char i = 0; i < 8; i++) {
-        
-        if(readTimeSlot()){
-            scratchPad.reserved_one |= (1 << i);
-        }
-        
-    }
-    
-    // Read Reserved Bytes 2
-    for (unsigned char i = 0; i < 8; i++) {
-        
-        if(readTimeSlot()){
-            scratchPad.reserved_two |= (1 << i);
-        }
-        
-    }
-    
-    // Read Reserved Bytes 3
-    for (unsigned char i = 0; i < 8; i++) {
-        
-        if(readTimeSlot()){
-            scratchPad.reserved_three |= (1 << i);
-        }
-        
-    }
-    
-    // Read CRC
-    for (unsigned char i = 0; i < 8; i++) {
-        
-        if(readTimeSlot()){
-            scratchPad.crc |= (1 << i);
-        }
-        
-    }
-    
+
     return 1;
 }
 
 
-unsigned char verifyCrc(void){
+uint8_t verifyCrc(void){
     
-    register unsigned char shiftregister = 0,
-                           output = 0;
-    
-    
-    for (int c = 0; c < 16; c++) {
-        
-        output = (!(scratchPad.temperature & (1 << c)) != !(0x1 & shiftregister));
+    register uint8_t shiftregister = 0,
+                            output = 0,
+                            input  = 0;
 
-        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
+
+    for (uint8_t n = 0; n < 9; ++n)
+    {
+
+        input = scratch[n];
+
+        for (uint8_t c = 0; c < 8; c++) {
         
-        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
+            
+            output = (!(input & (1 << c)) != !(0x1 & shiftregister));
+            
+
+            shiftregister = (((shiftregister & 0x7) >> 1) | 
+                                        (shiftregister & 0xF8));
+
+            shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | 
+                                        (shiftregister & 0xFB);
+
+            shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | 
+                                        (shiftregister & 0xF7);
+
+            shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | 
+                                        (shiftregister & 0x0F); 
+
+
+            shiftregister = (output << 7) | (shiftregister & 0x7F);
         
-        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
-        
-        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
-        
-        shiftregister = (output << 7) | (shiftregister & 0x7F);
-       
+        }
+
     }
     
-    for (int c = 0; c < 8; c++) {
-        
-        output = (!(scratchPad.th_register & (1 << c)) != !(0x1 & shiftregister));
-        
-        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
-        
-        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
-        
-        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
-        
-        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
-        
-        shiftregister = (output << 7) | (shiftregister & 0x7F);
-        
-        
-    }
-    
-    for (int c = 0; c < 8; c++) {
-        
-        output = (!(scratchPad.tl_register & (1 << c)) != !(0x1 & shiftregister));
-        
-        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
-        
-        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
-        
-        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
-        
-        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
-        
-        shiftregister = (output << 7) | (shiftregister & 0x7F);
-        
-    }
-
-    
-    for (int c = 0; c < 8; c++) {
-        
-
-        output = (!(scratchPad.conf_register & (1 << c)) != !(0x1 & shiftregister));
-        
-        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
-        
-        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
-        
-        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
-        
-        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
-        
-        shiftregister = (output << 7) | (shiftregister & 0x7F);
-        
-    }
-    
-    for (int c = 0; c < 8; c++) {
-        
-        output = (!(scratchPad.reserved_one & (1 << c)) != !(0x1 & shiftregister));
-        
-        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
-        
-        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
-        
-        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
-        
-        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
-        
-        shiftregister = (output << 7) | (shiftregister & 0x7F);
-        
-    }
-
-    
-    for (int c = 0; c < 8; c++) {
-        
-        output = (!(scratchPad.reserved_two & (1 << c)) != !(0x1 & shiftregister));
-        
-        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
-
-        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
-
-        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
-
-        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
-
-        shiftregister = (output << 7) | (shiftregister & 0x7F);
-        
-    }
-    
-    for (int c = 0; c < 8; c++) {
-        
-        output = (!(scratchPad.reserved_three & (1 << c)) != !(0x1 & shiftregister));
-
-        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
-
-        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
-
-        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
-
-        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
-
-        shiftregister = (output << 7) | (shiftregister & 0x7F);
-        
-    }
-    
-    // Shift in CRC
-    for (int c = 0; c < 8; c++) {
-
-        output = (!(scratchPad.crc & (1 << c)) != !(0x1 & shiftregister));
-        
-        shiftregister = (((shiftregister & 0x7) >> 1) | (shiftregister & 0xF8));
-        
-        shiftregister = ((!(shiftregister & 0x8) != !output) << 2) | (shiftregister & 0xFB);
-        
-        shiftregister = ((!(shiftregister & 0x10) != !output) << 3) | (shiftregister & 0xF7);
-        
-        shiftregister = (((shiftregister & 0xF0) >> 1) & 0xF0) | (shiftregister & 0x0F);
-        
-        shiftregister = (output << 7) | (shiftregister & 0x7F);
-        
-    }
-
-   
-    return shiftregister == 0x00;
+  
+    return shiftregister == 0;
 }
 
 
-unsigned int getTemperatureRegisterData(void){
-    
-    return scratchPad.temperature;
+uint16_t getTemperatureRegisterData(void){
+
+    uint16_t temp = scratch[1];
+    temp <<= 8;
+    temp |= scratch[0];
+    return temp;
     
 }
 
-unsigned int getCrcRegisterData(void){
-    
-    return scratchPad.crc;
-    
-}
