@@ -38,31 +38,31 @@ void printCelsiusTemperature(void){
     // If CRC-test pass print temperature
     if (verifyCrc()) {
         
-        writeCharacter(0b01010100);
-        writeCharacter(0b01100101);
-        writeCharacter(0b01101101);
-        writeCharacter(0b01110000);
-        writeCharacter(0b00111010);
+        writeCharacter('T');
+        writeCharacter('e');
+        writeCharacter('m');
+        writeCharacter('p');
+        writeCharacter(':');
         
         // Store each part of temperature in separate variables
-        unsigned int signBits = (temp & 0b1111100000000000) >> 11;
-        unsigned int integer  = (temp & 0b0000011111110000) >> 4;
-        unsigned int fraction = (temp & 0b0000000000001111);
+        unsigned int signBits = (temp & 0xF800) >> 11;
+        unsigned int integer  = (temp & 0x7F0) >> 4;
+        unsigned int fraction = (temp & 0xF);
         
         // Signbits > 0 the temperature is negative
         if (signBits){
             
             // If negative temperature the bits should be inverted
             // and added one.
-            unsigned int tempBits = (temp & 0b0000011111111111);
+            unsigned int tempBits = (temp & 0x7FF);
             tempBits = ~tempBits;
             tempBits = tempBits + 1;
             
-            integer = (tempBits & 0b0000011111110000) >> 4;
-            fraction = (tempBits & 0b0000000000001111);
+            integer = (tempBits & 0x7F0) >> 4;
+            fraction = (tempBits & 0xF);
             
             // -
-            writeCharacter(0b00101101);
+            writeCharacter('-');
             
         }
         
@@ -73,19 +73,19 @@ void printCelsiusTemperature(void){
         
         if (hundreds){
             
-            writeCharacter(hundreds | 0b00110000);
-            writeCharacter(tens | 0b00110000);
+            writeCharacter(hundreds | 0x30);
+            writeCharacter(tens | 0x30);
             
         }
         else{
             
             if(tens){
-                writeCharacter(tens | 0b00110000);
+                writeCharacter(tens | 0x30);
             }
             
         }
         
-        writeCharacter(ones | 0b00110000);
+        writeCharacter(ones | 0x30);
         
         // -----------------------
         
@@ -95,26 +95,32 @@ void printCelsiusTemperature(void){
         // -----------Fraction part------------
         
         fraction = fraction * 625;
-        unsigned int tenths             = fraction/1000;
+        unsigned int tenths             =  fraction/1000;
         unsigned int centesimals        = (fraction/100) % 10;
         unsigned int millesimals        = (fraction/10) % 10;
-        unsigned int tensmillesimals     = (fraction % 100) % 10;
+        unsigned int tensmillesimals    = (fraction % 100) % 10;
         
-        writeCharacter(tenths | 0b00110000);
-        writeCharacter(centesimals | 0b00110000);
-        writeCharacter(millesimals | 0b00110000);
-        writeCharacter(tensmillesimals | 0b00110000);        
+        writeCharacter(tenths | 0x30);
+        writeCharacter(centesimals | 0x30);
+        writeCharacter(millesimals | 0x30);
+        writeCharacter(tensmillesimals | 0x30);
         
-        writeCharacter(0b11011111);
-        writeCharacter(0b01000011);
+        writeCharacter(0xDF);
+        writeCharacter('C');
         
     }
     else{
         
         executeCommand(CLEAR_DISPLAY);
-        writeCharacter(0b01000011); //C
-        writeCharacter(0b01010010); //R
-        writeCharacter(0b01000011); //C
+        writeCharacter('C');
+        writeCharacter('R');
+        writeCharacter('C');
+        writeCharacter('-');
+        writeCharacter('e');
+        writeCharacter('r');
+        writeCharacter('r');
+        writeCharacter('o');
+        writeCharacter('r');
         
     }
     
