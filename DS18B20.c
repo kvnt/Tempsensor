@@ -195,7 +195,8 @@ uint8_t readTimeSlot(void){
 }
 
 
-/* Takes a function or rom command as input
+/* ------ Issue Command ------
+   Takes a function or rom command as input
    and transmits it to the sensor */
 
 void issueCommand(uint8_t command){
