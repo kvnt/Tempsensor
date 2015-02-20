@@ -68,7 +68,7 @@ void writeData(uint8_t data);
 /* Takes data of type uint8_t as input
    and writes it to the LCD as an integer
    if its less than 10 and not negative. */
-void writeInteger(uint8_t data);
+void writeDigit(uint8_t data);
 
 /* Takes one of the specified command
  macros as input and sends it to the
