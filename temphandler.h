@@ -24,5 +24,8 @@
 
 #include <stdint.h>
 
+// Initializes LCD
 void startLCD(void);
+
+// Prints the current temperature from the sensor
 void printCelsiusTemperature(void);
