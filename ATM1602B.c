@@ -33,7 +33,8 @@
 #define DATAPORT            PORTB
 #define ENABLE_E            PORTD   |= 0x4
 #define DISABLE_E           PORTD   &= 0xFB
-#define BUSY_FLAG_HIGH      (PINB   & 0x80) == 0x80
+#define BUSY_FLAG_HIGH      (PINB   &  0x80) == 0x80
+#define BUSY_FLAG_LOW       (PINB   &  0x80) == 0x00
 #define DB7_INPUT           DDRB    &= 0x7F
 #define DB7_OUTPUT          DDRB    |= 0x80
 #define RW_ONE              PORTD   |= 0x2
@@ -41,18 +42,46 @@
 #define RS_ONE              PORTD   |= 0x1
 #define RS_ZERO             PORTD   &= 0xFE
 
-//Commands
+
+/* Display commands */
 #define SYSTEM_SET_8BITS_2LINES_10DOTS          0x3C
 #define SYSTEM_SET_8BITS_1LINE_10DOTS           0x34
-#define ENTRY_MODE_SET_INC_NOSHIFT              0x6
-#define CLEAR_DISPLAY                           0x1
-#define DISPLAY_ON_NO_CURSOR_NO_BLINK           0xC
-#define SET_DDRAM_ADDRESS                       0x80
+#define SYSTEM_SET_4BITS_2LINES_10DOTS          0x2C
+#define SYSTEM_SET_4BITS_1LINE_10DOTS           0x24
+#define SYSTEM_SET_8BITS_2LINES_7DOTS           0x38
+#define SYSTEM_SET_8BITS_1LINE_7DOTS            0x30
+#define SYSTEM_SET_4BITS_2LINES_7DOTS           0x28
+#define SYSTEM_SET_4BITS_1LINE_7DOTS            0x20
 
-// Initialize display
+#define ENTRY_MODE_SET_INC_SHIFT                0x7
+#define ENTRY_MODE_SET_INC_NOSHIFT              0x6
+#define ENTRY_MODE_SET_DEC_SHIFT                0x5
+#define ENTRY_MODE_SET_DEC_NOSHIFT              0x4
+
+#define CLEAR_DISPLAY                           0x1
+
+#define DISPLAY_ON_NO_CURSOR_NO_BLINK           0xC
+#define DISPLAY_ON_NO_CURSOR_BLINK              0xD
+#define DISPLAY_ON_CURSOR_NO_BLINK              0xE
+#define DISPLAY_ON_CURSOR_BLINK                 0xF
+
+#define DISPLAY_OFF                             0x8
+
+#define CURSOR_SHIFT_ONE_RIGHT                  0x1C
+#define CURSOR_SHIFT_ONE_LEFT                   0x18
+
+#define SET_DDRAM_ADDRESS                       0x80
+#define CURSOR_HOME                             0x2
+
+#define WRITE_DATA                              { RS_ONE; RW_ZERO; }
+#define READ_DATA                               { RS_ONE; RW_ONE;  }
+
+
+
+/* Initialize display */
 void initLCD(void){
     
-    // Set as outputs
+    /* Set all pins as outputs */
     DDRD |= 0x7;
     DDRB |= 0xFF;
     
@@ -61,80 +90,109 @@ void initLCD(void){
 // Send E signal
 void sendEnable(void){
     
+    /* Wait 200 nanoseconds */
     _delay_us(0.2);
     
-    // Enable E
+    /* Enable E */
     ENABLE_E;
     
+    /* Wait 400 nanoseconds */
     _delay_us(0.4);
     
-    // Disable E
+    /* Disable E */
     DISABLE_E;
     
 }
 
-// Check busy flag
+/* Reads the current status of the
+   busy-flag. */
 void readBusyFlag(void){
     
-    // Set pin B7 as input (LOW)
+    /* Set pin B7 as input (LOW) */
     DB7_INPUT;
     
-    // Set RS = 0, R/W = 1
-    RS_ZERO;
-    RW_ONE;
+    /* Set RS = 0, R/W = 1 */
+    RS_ZERO; RW_ONE;
     
+    /* Wait 200 nanoseconds */
     _delay_us(0.2);
     
-    // Enable E
+    /* Enable E */
     ENABLE_E;
     
+    /* Wait 400 nanoseconds */
     _delay_us(0.4);
     
-    // Wait until BF=0
+    /*  Wait until LCD is ready
+        (busy-flag == 0)*/
     while (BUSY_FLAG_HIGH){}
     
-    // Disable E
+    /* Disable E */
     DISABLE_E;
     
+    /* Wait 200 nanoseconds */
     _delay_us(0.2);
     
-    // Set pin B7 as output (HIGH)
+    /* Set pin B7 as output (HIGH) */
     DB7_OUTPUT;
     
 }
 
-// Write a single character
-void writeCharacter(uint8_t character){
+/* Takes data of type uint8_t as 
+   input and writes it to the LCD. */
+void writeData(uint8_t data){
     
-    // Set RS = 1, R/W = 0
-    RW_ZERO;
-    RS_ONE;
+    /* Set RS = 1, R/W = 0 */
+    WRITE_DATA;
     
-    // Assign character
-    DATAPORT = character;
+    /* Assign character to dataport */
+    DATAPORT = data;
     
+    /* Send enable and wait until
+     LCD has finished */
     sendEnable();
     readBusyFlag();
     
 }
 
-// Execute command
+/* Takes data of type uint8_t as input
+ and writes it to the LCD as an integer
+ if its less than 10 and not negative. */
+void writeDigit(uint8_t data){
+    
+    if((data <= 9) && (data >= 0)){
+        writeData(data | 0x30);
+    }
+    
+    
+}
+
+/* Takes one of the specified command
+   macros as input and sends it to the
+   LCD. */
 void executeCommand(uint8_t command){
     
-    RS_ZERO;
-    RW_ZERO;
+    /* Set both pin RS and RW to 0 */
+    RS_ZERO; RW_ZERO;
     
-    // Assign command
+    /* Assign command to the dataport */
     DATAPORT = command;
     
+    /* Send enable and wait until 
+       LCD has finished */
     sendEnable();
     readBusyFlag();
     
 }
 
-// Place cursor at specified address
+
+/* Takes the address as input and sends it
+   to the LCD */
 void position(uint8_t address){
     
+    /* Concatenate the adress with 
+       'Set DD RAM Address' command and 
+       send it to the executeCommand function. */
     executeCommand(address | SET_DDRAM_ADDRESS);
     
 }

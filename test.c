@@ -10,8 +10,6 @@
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
-volatile char counter;
-
 int main(void)
 {
     
@@ -20,7 +18,7 @@ int main(void)
     
     startLCD();
 
-    cli();             // disable global interrupts
+    cli(); // disable global interrupts
     
     // enable Timer1 overflow interrupt:
     TIMSK1 = (1 << TOIE1);
@@ -29,8 +27,7 @@ int main(void)
     TCCR1B |= (1 << CS10);
     TCCR1B |= (1 << CS12);
     
-    // enable global interrupts:
-    sei();
+    sei(); // enable global interrupts:
 
     while(1){
 

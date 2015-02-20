@@ -27,23 +27,54 @@
 
 #include <stdint.h>
 
-//Commands
+/* Display commands */
 #define SYSTEM_SET_8BITS_2LINES_10DOTS          0x3C
 #define SYSTEM_SET_8BITS_1LINE_10DOTS           0x34
+#define SYSTEM_SET_4BITS_2LINES_10DOTS          0x2C
+#define SYSTEM_SET_4BITS_1LINE_10DOTS           0x24
+#define SYSTEM_SET_8BITS_2LINES_7DOTS           0x38
+#define SYSTEM_SET_8BITS_1LINE_7DOTS            0x30
+#define SYSTEM_SET_4BITS_2LINES_7DOTS           0x28
+#define SYSTEM_SET_4BITS_1LINE_7DOTS            0x20
+
+#define ENTRY_MODE_SET_INC_SHIFT                0x7
 #define ENTRY_MODE_SET_INC_NOSHIFT              0x6
+#define ENTRY_MODE_SET_DEC_SHIFT                0x5
+#define ENTRY_MODE_SET_DEC_NOSHIFT              0x4
+
 #define CLEAR_DISPLAY                           0x1
+
 #define DISPLAY_ON_NO_CURSOR_NO_BLINK           0xC
+#define DISPLAY_ON_NO_CURSOR_BLINK              0xD
+#define DISPLAY_ON_CURSOR_NO_BLINK              0xE
+#define DISPLAY_ON_CURSOR_BLINK                 0xF
+
+#define DISPLAY_OFF                             0x8
+
+#define CURSOR_SHIFT_ONE_RIGHT                  0x1C
+#define CURSOR_SHIFT_ONE_LEFT                   0x18
+
 #define SET_DDRAM_ADDRESS                       0x80
+#define CURSOR_HOME                             0x2
 
 
- // Initialize display
+/* Initialize display */
 void initLCD(void);
 
-// Write a single character
-void writeCharacter(uint8_t character);
+/* Takes data of type uint8_t as
+ input and writes it to the LCD. */
+void writeData(uint8_t data);
 
-// Execute command
+/* Takes data of type uint8_t as input
+   and writes it to the LCD as an integer
+   if its less than 10 and not negative. */
+void writeDigit(uint8_t data);
+
+/* Takes one of the specified command
+ macros as input and sends it to the
+ LCD. */
 void executeCommand(uint8_t command);
 
-// Place cursor at specified address
+/* Takes the address as input and sends it
+ to the LCD */
 void position(uint8_t address);
