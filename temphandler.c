@@ -33,11 +33,11 @@ void startLCD(void){
     
     // Initialize LCD
     initLCD();
-    //executeCommand(SYSTEM_SET_8BITS_1LINE_10DOTS);
+    executeCommand(SYSTEM_SET_8BITS_1LINE_10DOTS);
     executeCommand(ENTRY_MODE_SET_INC_NOSHIFT);
     executeCommand(DISPLAY_ON_NO_CURSOR_NO_BLINK);
     executeCommand(CLEAR_DISPLAY);
-    executeCommand(SYSTEM_SET_8BITS_2LINES_10DOTS);
+    executeCommand(CURSOR_HOME);
     
 }
 

@@ -65,6 +65,8 @@
 #define DISPLAY_ON_CURSOR_NO_BLINK              0xE
 #define DISPLAY_ON_CURSOR_BLINK                 0xF
 
+#define DISPLAY_OFF                             0x8
+
 #define CURSOR_SHIFT_ONE_RIGHT                  0x1C
 #define CURSOR_SHIFT_ONE_LEFT                   0x18
 
