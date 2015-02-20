@@ -28,12 +28,12 @@
 #include "DS18B20.h"
 #include <avr/io.h>
 
-/* Starts up LCD */
+// Initializes LCD
 void startLCD(void){
     
     // Initialize LCD
     initLCD();
-    executeCommand(SYSTEM_SET_8BITS_2LINES_10DOTS);
+    //executeCommand(SYSTEM_SET_8BITS_1LINE_10DOTS);
     executeCommand(ENTRY_MODE_SET_INC_NOSHIFT);
     executeCommand(DISPLAY_ON_NO_CURSOR_NO_BLINK);
     executeCommand(CLEAR_DISPLAY);
@@ -41,7 +41,7 @@ void startLCD(void){
     
 }
 
-/* Print current temperature from sensor */
+// Prints the current temperature from the sensor
 void printCelsiusTemperature(void){
     
     // Wait for sensor to finish ...
@@ -51,16 +51,16 @@ void printCelsiusTemperature(void){
     unsigned int temp = getTemperatureRegisterData();
     
     // Position next characters at position 0x41
-    position(0x41);
+    position(0x1);
     
     // If CRC-test pass print temperature
     if (verifyCrc()) {
         
-        writeCharacter('T');
-        writeCharacter('e');
-        writeCharacter('m');
-        writeCharacter('p');
-        writeCharacter(':');
+        writeData('T');
+        writeData('e');
+        writeData('m');
+        writeData('p');
+        writeData(':');
         
         // Store each part of temperature in separate variables
         unsigned int signBits = (temp & 0xF800) >> 11;
@@ -80,7 +80,7 @@ void printCelsiusTemperature(void){
             fraction = (tempBits & 0xF);
             
             // -
-            writeCharacter('-');
+            writeData('-');
             
         }
         
@@ -91,54 +91,52 @@ void printCelsiusTemperature(void){
         
         if (hundreds){
             
-            writeCharacter(hundreds | 0x30);
-            writeCharacter(tens | 0x30);
+            writeData(hundreds | 0x30);
+            writeData(tens | 0x30);
             
         }
         else{
             
             if(tens){
-                writeCharacter(tens | 0x30);
+                writeData(tens | 0x30);
             }
             
         }
         
-        writeCharacter(ones | 0x30);
-        
-        // -----------------------
+        writeData(ones | 0x30);
         
         // .
-        writeCharacter(0b00101110);
+        writeData(0x2E);
+        
         
         // -----------Fraction part------------
-        
         fraction = fraction * 625;
         unsigned int tenths             =  fraction/1000;
         unsigned int centesimals        = (fraction/100) % 10;
         unsigned int millesimals        = (fraction/10) % 10;
         unsigned int tensmillesimals    = (fraction % 100) % 10;
         
-        writeCharacter(tenths | 0x30);
-        writeCharacter(centesimals | 0x30);
-        writeCharacter(millesimals | 0x30);
-        writeCharacter(tensmillesimals | 0x30);
+        writeData(tenths | 0x30);
+        writeData(centesimals | 0x30);
+        writeData(millesimals | 0x30);
+        writeData(tensmillesimals | 0x30);
         
-        writeCharacter(0xDF);
-        writeCharacter('C');
+        writeData(0xDF);
+        writeData('C');
         
     }
     else{
         
         executeCommand(CLEAR_DISPLAY);
-        writeCharacter('C');
-        writeCharacter('R');
-        writeCharacter('C');
-        writeCharacter('-');
-        writeCharacter('e');
-        writeCharacter('r');
-        writeCharacter('r');
-        writeCharacter('o');
-        writeCharacter('r');
+        writeData('C');
+        writeData('R');
+        writeData('C');
+        writeData('-');
+        writeData('e');
+        writeData('r');
+        writeData('r');
+        writeData('o');
+        writeData('r');
         
     }
     

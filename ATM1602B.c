@@ -33,7 +33,8 @@
 #define DATAPORT            PORTB
 #define ENABLE_E            PORTD   |= 0x4
 #define DISABLE_E           PORTD   &= 0xFB
-#define BUSY_FLAG_HIGH      (PINB   & 0x80) == 0x80
+#define BUSY_FLAG_HIGH      (PINB   &  0x80) == 0x80
+#define BUSY_FLAG_LOW       (PINB   &  0x80) == 0x00
 #define DB7_INPUT           DDRB    &= 0x7F
 #define DB7_OUTPUT          DDRB    |= 0x80
 #define RW_ONE              PORTD   |= 0x2
@@ -41,13 +42,36 @@
 #define RS_ONE              PORTD   |= 0x1
 #define RS_ZERO             PORTD   &= 0xFE
 
-//Commands
+
 #define SYSTEM_SET_8BITS_2LINES_10DOTS          0x3C
 #define SYSTEM_SET_8BITS_1LINE_10DOTS           0x34
+#define SYSTEM_SET_4BITS_2LINES_10DOTS          0x2C
+#define SYSTEM_SET_4BITS_1LINE_10DOTS           0x24
+#define SYSTEM_SET_8BITS_2LINES_7DOTS           0x38
+#define SYSTEM_SET_8BITS_1LINE_7DOTS            0x30
+#define SYSTEM_SET_4BITS_2LINES_7DOTS           0x28
+#define SYSTEM_SET_4BITS_1LINE_7DOTS            0x20
+
+#define ENTRY_MODE_SET_INC_SHIFT                0x7
 #define ENTRY_MODE_SET_INC_NOSHIFT              0x6
+#define ENTRY_MODE_SET_DEC_SHIFT                0x5
+#define ENTRY_MODE_SET_DEC_NOSHIFT              0x4
+
 #define CLEAR_DISPLAY                           0x1
+
 #define DISPLAY_ON_NO_CURSOR_NO_BLINK           0xC
+#define DISPLAY_ON_NO_CURSOR_BLINK              0xD
+#define DISPLAY_ON_CURSOR_NO_BLINK              0xE
+#define DISPLAY_ON_CURSOR_BLINK                 0xF
+
+#define CURSOR_SHIFT_ONE_RIGHT                  0x1C
+#define CURSOR_SHIFT_ONE_LEFT                   0x18
+
 #define SET_DDRAM_ADDRESS                       0x80
+#define CURSOR_HOME                             0x2
+
+#define WRITE_DATA                              { RS_ONE; RW_ZERO; }
+#define READ_DATA                               { RS_ONE; RW_ONE;  }
 
 // Initialize display
 void initLCD(void){
@@ -103,26 +127,38 @@ void readBusyFlag(void){
     
 }
 
-// Write a single character
-void writeCharacter(uint8_t character){
+// Write data to LCD
+void writeData(uint8_t data){
     
     // Set RS = 1, R/W = 0
-    RW_ZERO;
-    RS_ONE;
+    WRITE_DATA;
     
     // Assign character
-    DATAPORT = character;
+    DATAPORT = data;
     
     sendEnable();
     readBusyFlag();
     
 }
 
+// Read data from LCD
+uint8_t readData(void){
+    
+    // Set RS = 1, R/W = 1
+    READ_DATA;
+    
+    sendEnable();
+    readBusyFlag();
+    
+    return (uint8_t) DATAPORT;
+
+}
+
+
 // Execute command
 void executeCommand(uint8_t command){
     
-    RS_ZERO;
-    RW_ZERO;
+    RS_ZERO; RW_ZERO;
     
     // Assign command
     DATAPORT = command;
