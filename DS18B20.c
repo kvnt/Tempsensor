@@ -64,10 +64,13 @@ uint8_t scratch[9];
 
 void initSequence(void){
     
-    // PORTF0 always zero.
+    /* PORTF0 always zero. */
     PORTF &= 0xFE;
     
     // ---- MASTER TX RESET PULSE ---- //
+    
+    /* Pull the 1-Wire bus low for 
+       a minimum of 480μs*/
     
     PULL_BUS_LOW;
     
@@ -77,14 +80,22 @@ void initSequence(void){
     
     // ---- MASTER RX (SENSOR PRESENCE PULSE) ---- //
     
+    /* When the DS18B20 detects the pulse, it 
+       waits 15μs to 60μs */
     _delay_us(15);
     
+    /* Wait until sensor pulls bus low */
     while (BUS_IS_HIGH) {}
     
+    /* Sensor pulls 1-Wire bus low for 60μs 
+       to 240μs.*/
     _delay_us(60);
     
+    /* Wait until sensor releases bus */
     while (BUS_IS_LOW) {}
     
+    /* Total sequence should be 2*480μs so add
+       some extra delay. */
     _delay_us(405);
     
 }
@@ -102,7 +113,8 @@ void writeTimeSlot(uint8_t bit){
     
     switch (bit) {
             
-        case 0:
+        case 0: /* Write a binary zero
+                   to the sensor */
             
             /* Pull bus low for
                60 microseconds */
@@ -115,7 +127,8 @@ void writeTimeSlot(uint8_t bit){
             
             break;
             
-        case 1:
+        case 1: /* Write a binary one
+                 to the sensor */
             
             /* Pull bus low for
              10 microseconds */
@@ -126,12 +139,16 @@ void writeTimeSlot(uint8_t bit){
             
             RELEASE_BUS;
             
+            /* Wait another 50 microseconds 
+               to keep the total slot-time at
+               a mininum of 60μs */
             _delay_us(50);
             
             break;
             
     }
     
+    /* Wait 2μs to add recovery time */
     _delay_us(2);
     
 }
@@ -146,26 +163,33 @@ uint8_t readTimeSlot(void){
     
     uint8_t readBit = 0;
     
-    // --- Master initiates the read time slot --
-    
+    /* Initatiate the readtimeslot by pulling the bus 
+       low for >1μs */
     PULL_BUS_LOW;
     
     _delay_us(2);
     
     RELEASE_BUS;
     
+    
+    /* Wait another 10 microseconds to avoid reading
+       to early (total-time < 15μs) */
     _delay_us(10);
     
-    //Sample bus
+    /* Sample bus */
     readBit = READ_BUS;
     
+    /* Wait another 48 microseconds to keep the total 
+      slot-time at a mininum of 60μs */
     _delay_us(48);
     
-    // Wait for sensor to finish
+    /* Check and wait if sensor not finished */
     while (BUS_IS_LOW) {}
     
+    /* Wait 2μs to add recovery time */
     _delay_us(2);
     
+    /* Finally return the read bit */
     return readBit;
     
 }
@@ -176,13 +200,17 @@ uint8_t readTimeSlot(void){
 
 void issueCommand(uint8_t command){
     
+    /* Create mask to be enable to mask out
+    every bit of command */
     uint8_t mask = 0x1;
     
+    /* Iterate through all bits in command 
+       and send them to the sensor. */
     for (uint8_t i = 0; i < 8; i++){
         
         writeTimeSlot((mask & command) >> i);
-        
         mask <<= 1;
+        
     }
     
 }
@@ -212,20 +240,18 @@ uint16_t readScratchPad(void){
     READ_SCRATCH;
     
     /* Reads all bytes from scratchpad 
-       and stores the result in scratch
+       and stores the result in the scratch
        array */
     for (uint8_t n = 0; n < 9; ++n)
     {
         
-        uint8_t s   = 0;
+        uint8_t s   = 0; //Temporary variable
         scratch[n]  = 0;
         
         for (uint8_t i = 0; i < 8; i++) {
             
             if(readTimeSlot()){
-                
                 s |= (1 << i);
-                
             }
             
         }
