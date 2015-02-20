@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 
-//Commands
+/* Display commands */
 #define SYSTEM_SET_8BITS_2LINES_10DOTS          0x3C
 #define SYSTEM_SET_8BITS_1LINE_10DOTS           0x34
 #define SYSTEM_SET_4BITS_2LINES_10DOTS          0x2C
@@ -56,17 +56,18 @@
 #define CURSOR_HOME                             0x2
 
 
- // Initialize display
+/* Initialize display */
 void initLCD(void);
 
-// Write data to LCD
+/* Takes data of type uint8_t as
+ input and writes it to the LCD. */
 void writeData(uint8_t data);
 
-// Read data from LCD
-uint8_t readData(void);
-
-// Execute command
+/* Takes one of the specified command
+ macros as input and sends it to the
+ LCD. */
 void executeCommand(uint8_t command);
 
-// Place cursor at specified address
+/* Takes the address as input and sends it
+ to the LCD */
 void position(uint8_t address);

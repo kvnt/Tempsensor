@@ -43,6 +43,7 @@
 #define RS_ZERO             PORTD   &= 0xFE
 
 
+/* Display commands */
 #define SYSTEM_SET_8BITS_2LINES_10DOTS          0x3C
 #define SYSTEM_SET_8BITS_1LINE_10DOTS           0x34
 #define SYSTEM_SET_4BITS_2LINES_10DOTS          0x2C
@@ -73,10 +74,12 @@
 #define WRITE_DATA                              { RS_ONE; RW_ZERO; }
 #define READ_DATA                               { RS_ONE; RW_ONE;  }
 
-// Initialize display
+
+
+/* Initialize display */
 void initLCD(void){
     
-    // Set as outputs
+    /* Set all pins as outputs */
     DDRD |= 0x7;
     DDRB |= 0xFF;
     
@@ -85,92 +88,97 @@ void initLCD(void){
 // Send E signal
 void sendEnable(void){
     
+    /* Wait 200 nanoseconds */
     _delay_us(0.2);
     
-    // Enable E
+    /* Enable E */
     ENABLE_E;
     
+    /* Wait 400 nanoseconds */
     _delay_us(0.4);
     
-    // Disable E
+    /* Disable E */
     DISABLE_E;
     
 }
 
-// Check busy flag
+/* Reads the current status of the
+   busy-flag. */
 void readBusyFlag(void){
     
-    // Set pin B7 as input (LOW)
+    /* Set pin B7 as input (LOW) */
     DB7_INPUT;
     
-    // Set RS = 0, R/W = 1
-    RS_ZERO;
-    RW_ONE;
+    /* Set RS = 0, R/W = 1 */
+    RS_ZERO; RW_ONE;
     
+    /* Wait 200 nanoseconds */
     _delay_us(0.2);
     
-    // Enable E
+    /* Enable E */
     ENABLE_E;
     
+    /* Wait 400 nanoseconds */
     _delay_us(0.4);
     
-    // Wait until BF=0
+    /*  Wait until LCD is ready
+        (busy-flag == 0)*/
     while (BUSY_FLAG_HIGH){}
     
-    // Disable E
+    /* Disable E */
     DISABLE_E;
     
+    /* Wait 200 nanoseconds */
     _delay_us(0.2);
     
-    // Set pin B7 as output (HIGH)
+    /* Set pin B7 as output (HIGH) */
     DB7_OUTPUT;
     
 }
 
-// Write data to LCD
+/* Takes data of type uint8_t as 
+   input and writes it to the LCD. */
 void writeData(uint8_t data){
     
-    // Set RS = 1, R/W = 0
+    /* Set RS = 1, R/W = 0 */
     WRITE_DATA;
     
-    // Assign character
+    /* Assign character to dataport */
     DATAPORT = data;
     
+    /* Send enable and wait until
+     LCD has finished */
     sendEnable();
     readBusyFlag();
     
 }
 
-// Read data from LCD
-uint8_t readData(void){
-    
-    // Set RS = 1, R/W = 1
-    READ_DATA;
-    
-    sendEnable();
-    readBusyFlag();
-    
-    return (uint8_t) DATAPORT;
-
-}
-
-
-// Execute command
+/* Takes one of the specified command
+   macros as input and sends it to the
+   LCD. */
 void executeCommand(uint8_t command){
     
+    /* Set both pin RS and RW to 0 */
     RS_ZERO; RW_ZERO;
     
-    // Assign command
+    /* Assign command to the dataport */
     DATAPORT = command;
     
+    /* Send enable and wait until 
+       LCD has finished */
     sendEnable();
     readBusyFlag();
     
 }
 
-// Place cursor at specified address
+
+/* Takes the address as input and sends it
+   to the LCD */
 void position(uint8_t address){
     
+    /* Concatenate the adress with 
+       'Set DD RAM Address' command and 
+       send it to the executeCommand function. */
     executeCommand(address | SET_DDRAM_ADDRESS);
     
 }
