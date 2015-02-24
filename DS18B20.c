@@ -155,7 +155,7 @@ void writeTimeSlot(uint8_t bit){
 
 /* READ TIME SLOTS
  -------------------------------
- unsigned char readTimeSlot() returns the read bit.
+ readTimeSlot() returns the read bit.
  
  */
 
@@ -292,7 +292,7 @@ uint8_t verifyCrc(void){
                significant bit in shiftregister */
             output = (!(input & (1 << c)) != !(0x1 & shiftregister));
             
-            /* Shift the three least significant bits one step to the left */
+            /* Shift the three least significant bits one step to the right */
             shiftregister = (((shiftregister & 0x7) >> 1) |
                                 (shiftregister & 0xF8));
             

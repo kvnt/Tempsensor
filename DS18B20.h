@@ -52,7 +52,7 @@ void writeTimeSlot(uint8_t bit);
 
 /* READ TIME SLOTS
  -------------------------------
- unsigned char readTimeSlot() returns the read bit.
+ readTimeSlot() returns the read bit.
  
  */
 
